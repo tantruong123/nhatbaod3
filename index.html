@@ -21,68 +21,105 @@
     </script>
     <style>
         .card-hover { transition: all 0.3s ease; }
-        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.15); }
+        .card-hover:hover { transform: translateY(-4px); box-shadow: 0 10px 25px rgba(0,0,0,0.12); }
+        .prose p { margin-bottom: 1rem; line-height: 1.8; }
+        .image-preview-item { position: relative; }
+        .remove-img-btn { position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.6); color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .remove-img-btn:hover { background: rgba(0,0,0,0.8); }
     </style>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
+    <!-- Header -->
     <header class="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-50">
-        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
-            <a href="#" class="flex items-center gap-2">
-                <span class="text-2xl">📰</span>
-                <h1 class="text-xl font-bold text-primary">Nhật Báo D3</h1>
-            </a>
-            <button id="themeToggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
-                <i class="fa-solid fa-moon dark:hidden"></i>
-                <i class="fa-solid fa-sun hidden dark:inline text-yellow-400"></i>
-            </button>
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <a href="#" class="flex items-center gap-2">
+                    <span class="text-2xl">📰</span>
+                    <h1 class="text-xl font-bold text-primary">Nhật Báo D3</h1>
+                </a>
+                <div class="flex items-center gap-3">
+                    <button id="themeToggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <i class="fa-solid fa-moon dark:hidden"></i>
+                        <i class="fa-solid fa-sun hidden dark:inline text-yellow-400"></i>
+                    </button>
+                    <button id="addPostBtn" class="bg-secondary text-white px-4 py-2 rounded-lg text-sm font-medium">
+                        <i class="fa-solid fa-plus mr-1"></i> Đăng bài
+                    </button>
+                </div>
+            </div>
         </div>
     </header>
 
+    <!-- Main -->
     <main class="flex-grow container mx-auto px-4 py-6">
-        <!-- Bài viết cố định vĩnh viễn -->
-        <article class="max-w-3xl mx-auto">
-            <div class="mb-8">
-                <span class="bg-red-600 text-white px-3 py-1 rounded-full text-sm font-medium">Bản tin giả định</span>
-                <h2 class="text-3xl font-bold mt-4 mb-3">BẮT GIỮ ĐỐI TƯỢNG LIÊN QUAN ĐẾN VỤ VIỆC XÂM HẠI TÌNH DỤC NGƯỜI CAO TUỔI VÀO RẠNG SÁNG 10/10/2026</h2>
-                <p class="text-gray-500 dark:text-gray-400 mb-6">Hà Tĩnh, 10/10/2026</p>
-                
-                <div class="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 p-4 mb-6">
-                    <p class="text-sm text-yellow-800 dark:text-yellow-200 font-medium">⚠️ Bản tin giả định — dùng cho mục đích minh họa, không phải thông tin sự thật</p>
-                </div>
+        <div class="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 p-4 mb-8 rounded-r-lg">
+            <p class="text-sm text-yellow-800 dark:text-yellow-200 font-medium">
+                ⚠️ Các bài đăng trên trang này là <strong>bản tin giả định</strong>, chỉ dùng cho mục đích minh họa
+            </p>
+        </div>
 
-                <div class="prose max-w-none text-lg leading-relaxed space-y-4">
-                    <p>Cơ quan Cảnh sát điều tra Công an huyện [tên huyện], tỉnh Hà Tĩnh vừa tiến hành bắt giữ khẩn cấp đối tượng Bảo Khanh, sinh năm 1998, trú tại xã [tên xã], huyện [tên huyện], về hành vi nghi vấn xâm hại tình dục, xảy ra vào rạng sáng ngày 10/10/2026 tại địa phương.</p>
-                    
-                    <p>Theo thông tin ban đầu từ phía cơ quan chức năng, vào khoảng 2 giờ rạng sáng cùng ngày, đối tượng Bảo Khanh được xác định đã có hành vi đột nhập và thực hiện hành vi xâm hại tình dục tại nhà bà N.T.T., sinh năm 1942, thường trú tại thôn [tên thôn], xã [tên xã]. Nạn nhân là người cao tuổi, đơn thân, sống một mình tại khu vực.</p>
-                    
-                    <p>Ngay sau khi nhận được tin báo từ gia đình và người thân nạn nhân, lực lượng Công an huyện đã nhanh chóng cử cán bộ phong tỏa hiện trường, khám xét, thu thập chứng cứ và lấy lời khai liên quan. Dựa trên dấu vết tại hiện trường, lời khai của nạn nhân và người dân xung quanh, cùng với dữ liệu giám sát tại khu vực, cơ quan điều tra đã xác định Bảo Khanh là người có liên quan trực tiếp đến vụ việc.</p>
-                    
-                    <p>Đến khoảng 4 giờ sáng cùng ngày, lực lượng đặc nhiệm đã tiếp cận và tiến hành bắt giữ đối tượng tại nơi cư trú mà không gây trở ngại. Tại cơ quan điều tra, ban đầu đối tượng có biểu hiện phủ nhận, tuy nhiên trước hệ thống chứng cứ thu thập được, đã bước đầu thừa nhận hành vi.</p>
-                    
-                    <p>Hiện sức khỏe nạn nhân đang được gia đình theo dõi và chăm sóc; tâm lý còn có biểu hiện hoảng sợ, cần được quan tâm và hỗ trợ kịp thời.</p>
-                    
-                    <p>Cơ quan Cảnh sát điều tra hiện đang hoàn thiện hồ sơ, bổ sung chứng cứ theo quy định, để đề nghị Viện Kiểm sát nhân dân cùng cấp xem xét truy tố bị can theo quy định của pháp luật. Vụ việc đang trong giai đoạn điều tra, các thông tin chi tiết sẽ được thông báo khi có kết luận chính thức.</p>
-                    
-                    <p>Theo quy định tại Bộ luật Hình sự, hành vi xâm hại tình dục người cao tuổi từ đủ 70 tuổi trở lên là một trong các tình tiết nặng, có thể bị xử lý với hình phạt từ 7 năm đến 15 năm tù hoặc cao hơn, tùy tính chất và mức độ thực hiện hành vi.</p>
-                </div>
-
-                <div class="mt-8 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg text-sm text-gray-600 dark:text-gray-300">
-                    <p class="font-medium mb-2">Lưu ý quan trọng:</p>
-                    <ul class="list-disc pl-5 space-y-1">
-                        <li>Toàn bộ nội dung trên là bản tin GIẢ ĐỊNH, không phản ánh bất kỳ sự việc hay nhân vật thực tế nào</li>
-                        <li>Không dùng nội dung này để gán cho người hay sự việc cụ thể nếu chưa có thông báo chính thức từ cơ quan có thẩm quyền</li>
-                    </ul>
-                </div>
-            </div>
-        </article>
+        <section>
+            <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+                <i class="fa-solid fa-newspaper text-primary"></i> Bài viết đã đăng
+            </h2>
+            <div id="postsContainer" class="space-y-8"></div>
+        </section>
     </main>
 
     <footer class="bg-gray-900 text-white py-8 mt-12">
         <div class="container mx-auto px-4 text-center">
             <p class="font-bold text-lg mb-2">📰 Nhật Báo D3</p>
-            <p class="text-gray-400 text-sm">© 2026 Nhật Báo D3 — Nội dung được lưu vĩnh viễn</p>
+            <p class="text-gray-400 text-sm">© 2026 Nhật Báo D3 — Bài viết được lưu tự động</p>
         </div>
     </footer>
+
+    <!-- Modal Đăng Bài -->
+    <div id="postModal" class="fixed inset-0 z-50 hidden bg-black/60 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-white dark:bg-gray-800 p-5 border-b dark:border-gray-700 flex justify-between items-center">
+                <h3 class="text-xl font-bold">✍️ Đăng bài viết mới</h3>
+                <button id="closeModal" class="text-gray-500 hover:text-black dark:hover:text-white text-xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <form id="postForm" class="p-5 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Tiêu đề bài viết *</label>
+                    <input type="text" id="postTitle" required
+                        class="w-full p-3 border dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700"
+                        placeholder="Nhập tiêu đề...">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Ảnh minh họa (có thể chọn nhiều ảnh)</label>
+                    <input type="file" id="postImages" accept="image/*" multiple class="w-full text-sm">
+                    <div id="multiPreviewBox" class="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3"></div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Tác giả</label>
+                    <input type="text" id="postAuthor" value="Quản trị"
+                        class="w-full p-3 border dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Nội dung bài viết *</label>
+                    <textarea id="postContent" rows="10" required
+                        class="w-full p-3 border dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700"
+                        placeholder="Viết nội dung bài viết..."></textarea>
+                </div>
+                <div class="flex gap-3 pt-3">
+                    <button type="button" id="cancelBtn" class="flex-1 py-3 border dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                        Hủy
+                    </button>
+                    <button type="submit" class="flex-1 bg-secondary text-white py-3 rounded-lg font-medium">
+                        <i class="fa-solid fa-paper-plane mr-1"></i> Đăng bài
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-6 right-6 bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-5 py-3 rounded-lg shadow-2xl opacity-0 transition-opacity duration-300 pointer-events-none z-50">
+        Đăng bài thành công! ✅
+    </div>
 
     <script>
         // Chế độ tối/sáng
@@ -93,6 +130,139 @@
             document.documentElement.classList.toggle('dark');
             localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
         });
+
+        let posts = JSON.parse(localStorage.getItem('nhatbaod3_posts')) || [
+            {
+                id: Date.now(),
+                title: "BẮT GIỮ ĐỐI TƯỢNG LIÊN QUAN ĐẾN VỤ VIỆC XÂM HẠI TÌNH DỤC NGƯỜI CAO TUỔI VÀO RẠNG SÁNG 10/10/2026",
+                author: "Nhật Báo D3",
+                date: "10/10/2026",
+                images: [],
+                content: `Cơ quan Cảnh sát điều tra Công an huyện [tên huyện], tỉnh Hà Tĩnh vừa tiến hành bắt giữ khẩn cấp đối tượng Bảo Khanh, sinh năm 1998, trú tại xã [tên xã], huyện [tên huyện], về hành vi nghi vấn xâm hại tình dục, xảy ra vào rạng sáng ngày 10/10/2026 tại địa phương.
+
+Theo thông tin ban đầu từ phía cơ quan chức năng, vào khoảng 2 giờ rạng sáng cùng ngày, đối tượng Bảo Khanh được xác định đã có hành vi đột nhập và thực hiện hành vi xâm hại tình dục tại nhà bà N.T.T., sinh năm 1942, thường trú tại thôn [tên thôn], xã [tên xã]. Nạn nhân là người cao tuổi, đơn thân, sống một mình tại khu vực.
+
+Ngay sau khi nhận được tin báo từ gia đình và người thân nạn nhân, lực lượng Công an huyện đã nhanh chóng cử cán bộ phong tỏa hiện trường, khám xét, thu thập chứng cứ và lấy lời khai liên quan. Dựa trên dấu vết tại hiện trường, lời khai của nạn nhân và người dân xung quanh, cùng với dữ liệu giám sát tại khu vực, cơ quan điều tra đã xác định Bảo Khanh là người có liên quan trực tiếp đến vụ việc.
+
+Đến khoảng 4 giờ sáng cùng ngày, lực lượng đặc nhiệm đã tiếp cận và tiến hành bắt giữ đối tượng tại nơi cư trú mà không gây trở ngại. Tại cơ quan điều tra, ban đầu đối tượng có biểu hiện phủ nhận, tuy nhiên trước hệ thống chứng cứ thu thập được, đã bước đầu thừa nhận hành vi.
+
+Hiện sức khỏe nạn nhân đang được gia đình theo dõi và chăm sóc; tâm lý còn có biểu hiện hoảng sợ, cần được quan tâm và hỗ trợ kịp thời.
+
+Cơ quan Cảnh sát điều tra hiện đang hoàn thiện hồ sơ, bổ sung chứng cứ theo quy định, để đề nghị Viện Kiểm sát nhân dân cùng cấp xem xét truy tố bị can theo quy định của pháp luật. Vụ việc đang trong giai đoạn điều tra, các thông tin chi tiết sẽ được thông báo khi có kết luận chính thức.
+
+Theo quy định tại Bộ luật Hình sự, hành vi xâm hại tình dục người cao tuổi từ đủ 70 tuổi trở lên là một trong các tình tiết nặng, có thể bị xử lý với hình phạt từ 7 năm đến 15 năm tù hoặc cao hơn, tùy tính chất và mức độ thực hiện hành vi.`,
+                isMock: true
+            }
+        ];
+
+        function savePosts() {
+            localStorage.setItem('nhatbaod3_posts', JSON.stringify(posts));
+        }
+
+        function renderPosts() {
+            const container = document.getElementById('postsContainer');
+            if (posts.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500 py-10">Chưa có bài viết nào. Nhấn nút "Đăng bài" để viết bài đầu tiên!</p>';
+                return;
+            }
+            container.innerHTML = posts.map(post => `
+                <article class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden card-hover">
+                    ${post.images && post.images.length > 0 ? `
+                        <div class="grid ${post.images.length === 1 ? 'grid-cols-1' : 'grid-cols-2 md:grid-cols-3'} gap-2 p-4">
+                            ${post.images.map((img, idx) => `
+                                <img src="${img}" class="${post.images.length === 1 ? 'w-full max-h-[400px] object-cover rounded-lg' : 'w-full h-40 object-cover rounded-lg'}" alt="Ảnh ${idx+1}">
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    <div class="p-6">
+                        ${post.isMock ? '<span class="bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300 px-3 py-1 rounded-full text-xs font-medium mb-3 inline-block">Bản tin giả định</span>' : ''}
+                        <h3 class="text-2xl font-bold mb-3">${post.title}</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-5">${post.author} • ${post.date}</p>
+                        <div class="prose max-w-none text-gray-700 dark:text-gray-300 whitespace-pre-line">
+                            ${post.content}
+                        </div>
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        // Xử lý nhiều ảnh
+        let selectedImages = [];
+        const imagesInput = document.getElementById('postImages');
+        const previewBox = document.getElementById('multiPreviewBox');
+
+        imagesInput.addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+            files.forEach(file => {
+                if (!file.type.startsWith('image/')) return;
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    selectedImages.push(ev.target.result);
+                    renderImagePreviews();
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+
+        function renderImagePreviews() {
+            previewBox.innerHTML = selectedImages.map((imgSrc, idx) => `
+                <div class="image-preview-item">
+                    <img src="${imgSrc}" class="w-full h-24 object-cover rounded-lg">
+                    <button type="button" class="remove-img-btn" data-index="${idx}">
+                        <i class="fa-solid fa-times text-sm"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        previewBox.addEventListener('click', function(e) {
+            const btn = e.target.closest('.remove-img-btn');
+            if (!btn) return;
+            const idx = parseInt(btn.dataset.index);
+            selectedImages.splice(idx, 1);
+            renderImagePreviews();
+        });
+
+        // Mở/đóng form
+        const modal = document.getElementById('postModal');
+        document.getElementById('addPostBtn').onclick = () => {
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        };
+        function closeModal() {
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+            document.getElementById('postForm').reset();
+            selectedImages = [];
+            previewBox.innerHTML = '';
+        }
+        document.getElementById('closeModal').onclick = closeModal;
+        document.getElementById('cancelBtn').onclick = closeModal;
+        modal.onclick = e => e.target === modal && closeModal();
+
+        // Đăng bài
+        document.getElementById('postForm').onsubmit = function(e) {
+            e.preventDefault();
+            const newPost = {
+                id: Date.now(),
+                title: document.getElementById('postTitle').value.trim(),
+                author: document.getElementById('postAuthor').value.trim() || "Ẩn danh",
+                date: new Date().toLocaleDateString('vi-VN'),
+                images: [...selectedImages],
+                content: document.getElementById('postContent').value.trim(),
+                isMock: true
+            };
+            posts.unshift(newPost);
+            savePosts();
+            renderPosts();
+            closeModal();
+            
+            const toast = document.getElementById('toast');
+            toast.classList.remove('opacity-0');
+            setTimeout(() => toast.classList.add('opacity-0'), 3000);
+        };
+
+        renderPosts();
     </script>
 </body>
 </html>
