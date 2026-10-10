@@ -22,10 +22,13 @@
     <style>
         .card-hover { transition: all 0.3s ease; }
         .card-hover:hover { transform: translateY(-4px); box-shadow: 0 10px 25px rgba(0,0,0,0.12); }
-        .prose p { margin-bottom: 1rem; line-height: 1.8; }
-        .image-preview-item { position: relative; }
-        .remove-img-btn { position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.6); color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        .remove-img-btn:hover { background: rgba(0,0,0,0.8); }
+        .preview-item { position: relative; }
+        .remove-btn { position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.6); color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; }
+        .remove-btn:hover { background: rgba(0,0,0,0.8); }
+        .article-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; }
+        .article-content.expanded { max-height: 5000px; }
+        .fade-mask { position: absolute; bottom: 0; left: 0; right: 0; height: 60px; background: linear-gradient(transparent, rgb(249 250 251 / 0.95)); pointer-events: none; }
+        .dark .fade-mask { background: linear-gradient(transparent, rgb(17 24 39 / 0.95)); }
     </style>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
@@ -62,7 +65,7 @@
             <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
                 <i class="fa-solid fa-newspaper text-primary"></i> Bài viết đã đăng
             </h2>
-            <div id="postsContainer" class="space-y-8"></div>
+            <div id="postsContainer" class="space-y-6"></div>
         </section>
     </main>
 
@@ -90,9 +93,10 @@
                         placeholder="Nhập tiêu đề...">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium mb-2">Ảnh minh họa (có thể chọn nhiều ảnh)</label>
+                    <label class="block text-sm font-medium mb-2">Ảnh minh họa (chọn nhiều ảnh được)</label>
                     <input type="file" id="postImages" accept="image/*" multiple class="w-full text-sm">
-                    <div id="multiPreviewBox" class="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3"></div>
+                    <p class="text-xs text-gray-500 mt-1">💡 Giữ Ctrl (máy) hoặc giữ ảnh (điện thoại) để chọn nhiều ảnh</p>
+                    <div id="previewContainer" class="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3"></div>
                 </div>
                 <div>
                     <label class="block text-sm font-medium mb-2">Tác giả</label>
@@ -101,7 +105,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium mb-2">Nội dung bài viết *</label>
-                    <textarea id="postContent" rows="10" required
+                    <textarea id="postContent" rows="8" required
                         class="w-full p-3 border dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700"
                         placeholder="Viết nội dung bài viết..."></textarea>
                 </div>
@@ -131,99 +135,125 @@
             localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
         });
 
-        let posts = JSON.parse(localStorage.getItem('nhatbaod3_posts')) || [
-            {
-                id: Date.now(),
-                title: "BẮT GIỮ ĐỐI TƯỢNG LIÊN QUAN ĐẾN VỤ VIỆC XÂM HẠI TÌNH DỤC NGƯỜI CAO TUỔI VÀO RẠNG SÁNG 10/10/2026",
-                author: "Nhật Báo D3",
-                date: "10/10/2026",
-                images: [],
-                content: `Cơ quan Cảnh sát điều tra Công an huyện [tên huyện], tỉnh Hà Tĩnh vừa tiến hành bắt giữ khẩn cấp đối tượng Bảo Khanh, sinh năm 1998, trú tại xã [tên xã], huyện [tên huyện], về hành vi nghi vấn xâm hại tình dục, xảy ra vào rạng sáng ngày 10/10/2026 tại địa phương.
-
-Theo thông tin ban đầu từ phía cơ quan chức năng, vào khoảng 2 giờ rạng sáng cùng ngày, đối tượng Bảo Khanh được xác định đã có hành vi đột nhập và thực hiện hành vi xâm hại tình dục tại nhà bà N.T.T., sinh năm 1942, thường trú tại thôn [tên thôn], xã [tên xã]. Nạn nhân là người cao tuổi, đơn thân, sống một mình tại khu vực.
-
-Ngay sau khi nhận được tin báo từ gia đình và người thân nạn nhân, lực lượng Công an huyện đã nhanh chóng cử cán bộ phong tỏa hiện trường, khám xét, thu thập chứng cứ và lấy lời khai liên quan. Dựa trên dấu vết tại hiện trường, lời khai của nạn nhân và người dân xung quanh, cùng với dữ liệu giám sát tại khu vực, cơ quan điều tra đã xác định Bảo Khanh là người có liên quan trực tiếp đến vụ việc.
-
-Đến khoảng 4 giờ sáng cùng ngày, lực lượng đặc nhiệm đã tiếp cận và tiến hành bắt giữ đối tượng tại nơi cư trú mà không gây trở ngại. Tại cơ quan điều tra, ban đầu đối tượng có biểu hiện phủ nhận, tuy nhiên trước hệ thống chứng cứ thu thập được, đã bước đầu thừa nhận hành vi.
-
-Hiện sức khỏe nạn nhân đang được gia đình theo dõi và chăm sóc; tâm lý còn có biểu hiện hoảng sợ, cần được quan tâm và hỗ trợ kịp thời.
-
-Cơ quan Cảnh sát điều tra hiện đang hoàn thiện hồ sơ, bổ sung chứng cứ theo quy định, để đề nghị Viện Kiểm sát nhân dân cùng cấp xem xét truy tố bị can theo quy định của pháp luật. Vụ việc đang trong giai đoạn điều tra, các thông tin chi tiết sẽ được thông báo khi có kết luận chính thức.
-
-Theo quy định tại Bộ luật Hình sự, hành vi xâm hại tình dục người cao tuổi từ đủ 70 tuổi trở lên là một trong các tình tiết nặng, có thể bị xử lý với hình phạt từ 7 năm đến 15 năm tù hoặc cao hơn, tùy tính chất và mức độ thực hiện hành vi.`,
-                isMock: true
-            }
-        ];
+        // Lưu bài viết — BAN ĐẦU TRỐNG HOÀN TOÀN
+        let posts = JSON.parse(localStorage.getItem('nhatbaod3_posts')) || [];
 
         function savePosts() {
             localStorage.setItem('nhatbaod3_posts', JSON.stringify(posts));
         }
 
+        // Hiển thị bài viết — thu gọn/mở rộng
         function renderPosts() {
             const container = document.getElementById('postsContainer');
             if (posts.length === 0) {
-                container.innerHTML = '<p class="text-center text-gray-500 py-10">Chưa có bài viết nào. Nhấn nút "Đăng bài" để viết bài đầu tiên!</p>';
+                container.innerHTML = `
+                    <div class="text-center py-16 text-gray-500 dark:text-gray-400">
+                        <i class="fa-solid fa-pen-to-square text-4xl mb-4 opacity-30"></i>
+                        <p class="text-lg">Chưa có bài viết nào</p>
+                        <p class="text-sm mt-1">Nhấn nút <strong>"Đăng bài"</strong> để viết bài đầu tiên!</p>
+                    </div>
+                `;
                 return;
             }
             container.innerHTML = posts.map(post => `
-                <article class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden card-hover">
-                    ${post.images && post.images.length > 0 ? `
-                        <div class="grid ${post.images.length === 1 ? 'grid-cols-1' : 'grid-cols-2 md:grid-cols-3'} gap-2 p-4">
-                            ${post.images.map((img, idx) => `
-                                <img src="${img}" class="${post.images.length === 1 ? 'w-full max-h-[400px] object-cover rounded-lg' : 'w-full h-40 object-cover rounded-lg'}" alt="Ảnh ${idx+1}">
-                            `).join('')}
-                        </div>
-                    ` : ''}
+                <article class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden card-hover" data-id="${post.id}">
                     <div class="p-6">
-                        ${post.isMock ? '<span class="bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300 px-3 py-1 rounded-full text-xs font-medium mb-3 inline-block">Bản tin giả định</span>' : ''}
-                        <h3 class="text-2xl font-bold mb-3">${post.title}</h3>
-                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-5">${post.author} • ${post.date}</p>
-                        <div class="prose max-w-none text-gray-700 dark:text-gray-300 whitespace-pre-line">
-                            ${post.content}
+                        <span class="bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300 px-3 py-1 rounded-full text-xs font-medium mb-3 inline-block">Bản tin giả định</span>
+                        <h3 class="text-xl font-bold mb-2 cursor-pointer toggle-title">${post.title}</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">${post.author} • ${post.date}</p>
+                        
+                        <div class="relative">
+                            <div class="article-content" id="content-${post.id}">
+                                ${post.images && post.images.length > 0 ? `
+                                    <div class="grid ${post.images.length === 1 ? 'grid-cols-1' : 'grid-cols-2 md:grid-cols-3'} gap-3 mb-4">
+                                        ${post.images.map(img => `
+                                            <img src="${img}" class="w-full ${post.images.length === 1 ? 'max-h-[400px]' : 'h-32'} object-cover rounded-lg">
+                                        `).join('')}
+                                    </div>
+                                ` : ''}
+                                <div class="prose max-w-none text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">
+                                    ${post.content}
+                                </div>
+                            </div>
+                            <div class="fade-mask" id="mask-${post.id}"></div>
                         </div>
+                        
+                        <button class="w-full mt-4 py-2 text-primary hover:text-secondary transition-colors flex items-center justify-center gap-2 toggle-btn" data-id="${post.id}" data-expanded="false">
+                            <span>Xem chi tiết</span>
+                            <i class="fa-solid fa-chevron-down text-sm"></i>
+                        </button>
                     </div>
                 </article>
             `).join('');
+
+            // Gắn sự kiện mở/thu gọn
+            document.querySelectorAll('.toggle-btn, .toggle-title').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.dataset.id || this.closest('[data-id]').dataset.id;
+                    toggleArticle(id);
+                });
+            });
         }
 
-        // Xử lý nhiều ảnh
-        let selectedImages = [];
-        const imagesInput = document.getElementById('postImages');
-        const previewBox = document.getElementById('multiPreviewBox');
+        function toggleArticle(id) {
+            const content = document.getElementById(`content-${id}`);
+            const mask = document.getElementById(`mask-${id}`);
+            const btn = document.querySelector(`.toggle-btn[data-id="${id}"]`);
+            const isExpanded = btn.dataset.expanded === 'true';
 
-        imagesInput.addEventListener('change', function(e) {
+            if (!isExpanded) {
+                content.classList.add('expanded');
+                mask.style.display = 'none';
+                btn.innerHTML = '<span>Thu gọn</span> <i class="fa-solid fa-chevron-up text-sm"></i>';
+                btn.dataset.expanded = 'true';
+            } else {
+                content.classList.remove('expanded');
+                mask.style.display = 'block';
+                btn.innerHTML = '<span>Xem chi tiết</span> <i class="fa-solid fa-chevron-down text-sm"></i>';
+                btn.dataset.expanded = 'false';
+            }
+        }
+
+        // === Xử lý chọn nhiều ảnh ===
+        let selectedImages = [];
+        const imageInput = document.getElementById('postImages');
+        const previewBox = document.getElementById('previewContainer');
+
+        imageInput.addEventListener('change', function(e) {
             const files = Array.from(e.target.files);
+            if (files.length === 0) return;
+
             files.forEach(file => {
                 if (!file.type.startsWith('image/')) return;
                 const reader = new FileReader();
                 reader.onload = function(ev) {
                     selectedImages.push(ev.target.result);
-                    renderImagePreviews();
+                    renderPreview();
                 };
                 reader.readAsDataURL(file);
             });
+            this.value = '';
         });
 
-        function renderImagePreviews() {
-            previewBox.innerHTML = selectedImages.map((imgSrc, idx) => `
-                <div class="image-preview-item">
-                    <img src="${imgSrc}" class="w-full h-24 object-cover rounded-lg">
-                    <button type="button" class="remove-img-btn" data-index="${idx}">
-                        <i class="fa-solid fa-times text-sm"></i>
+        function renderPreview() {
+            previewBox.innerHTML = selectedImages.map((src, idx) => `
+                <div class="preview-item">
+                    <img src="${src}" class="w-full h-24 object-cover rounded-lg">
+                    <button type="button" class="remove-btn" data-idx="${idx}">
+                        <i class="fa-solid fa-times"></i>
                     </button>
                 </div>
             `).join('');
         }
 
         previewBox.addEventListener('click', function(e) {
-            const btn = e.target.closest('.remove-img-btn');
+            const btn = e.target.closest('.remove-btn');
             if (!btn) return;
-            const idx = parseInt(btn.dataset.index);
-            selectedImages.splice(idx, 1);
-            renderImagePreviews();
+            selectedImages.splice(parseInt(btn.dataset.idx), 1);
+            renderPreview();
         });
 
-        // Mở/đóng form
+        // Mở/đóng form đăng bài
         const modal = document.getElementById('postModal');
         document.getElementById('addPostBtn').onclick = () => {
             modal.classList.remove('hidden');
@@ -243,13 +273,19 @@ Theo quy định tại Bộ luật Hình sự, hành vi xâm hại tình dục n
         // Đăng bài
         document.getElementById('postForm').onsubmit = function(e) {
             e.preventDefault();
+            const title = document.getElementById('postTitle').value.trim();
+            const content = document.getElementById('postContent').value.trim();
+            if (!title || !content) {
+                alert('Vui lòng nhập tiêu đề và nội dung!');
+                return;
+            }
             const newPost = {
                 id: Date.now(),
-                title: document.getElementById('postTitle').value.trim(),
+                title: title,
                 author: document.getElementById('postAuthor').value.trim() || "Ẩn danh",
                 date: new Date().toLocaleDateString('vi-VN'),
                 images: [...selectedImages],
-                content: document.getElementById('postContent').value.trim(),
+                content: content,
                 isMock: true
             };
             posts.unshift(newPost);
@@ -257,11 +293,13 @@ Theo quy định tại Bộ luật Hình sự, hành vi xâm hại tình dục n
             renderPosts();
             closeModal();
             
+            // Thông báo
             const toast = document.getElementById('toast');
             toast.classList.remove('opacity-0');
             setTimeout(() => toast.classList.add('opacity-0'), 3000);
         };
 
+        // Khởi tạo
         renderPosts();
     </script>
 </body>
