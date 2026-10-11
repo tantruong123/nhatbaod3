@@ -3,226 +3,355 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nhật Báo D3</title>
+    <title>Nhật Báo D3 - Tin tức mỗi ngày</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <script>
         tailwind.config = {
             darkMode: 'class',
-            theme: { extend: { colors: { primary: '#165DFF', secondary: '#FF7D00' } } }
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#FF7D00',
+                    }
+                }
+            }
         }
     </script>
     <style>
-        .card-hover { transition: all 0.3s; }
-        .card-hover:hover { transform: translateY(-3px); }
-        .article-full { max-height: 0; overflow: hidden; transition: max-height 0.5s; }
-        .article-full.open { max-height: 9999px; }
+        /* Giữ hiệu ứng cũ */
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-4px); box-shadow: 0 10px 25px rgba(0,0,0,0.12); }
+        
+        /* Khung bài thu gọn — vuông nhỏ */
+        .article-card { cursor: pointer; }
+        
+        /* Nội dung ẩn — mở ra khi nhấn */
+        .article-full { max-height: 0; overflow: hidden; transition: max-height 0.5s ease-out; }
+        .article-full.expanded { max-height: 9999px; }
+        
+        /* Ảnh xem trước trong form */
+        .preview-img { position: relative; }
+        .preview-img button {
+            position: absolute; top: 4px; right: 4px;
+            background: rgba(0,0,0,0.6); color: white; border-radius: 50%;
+            width: 28px; height: 28px; border: none; cursor: pointer;
+        }
     </style>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
-    <header class="bg-white dark:bg-gray-800 shadow-md py-4 sticky top-0 z-50">
-        <div class="container mx-auto px-4 flex justify-between items-center">
-            <h1 class="text-xl font-bold text-primary">📰 Nhật Báo D3</h1>
-            <div class="flex gap-3">
-                <button id="darkBtn" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
-                    <i class="fa-solid fa-moon dark:hidden"></i>
-                    <i class="fa-solid fa-sun hidden dark:inline text-yellow-400"></i>
-                </button>
-                <button id="addBtn" class="bg-secondary text-white px-4 py-2 rounded-lg text-sm">
-                    <i class="fa-solid fa-plus"></i> Đăng bài
-                </button>
+    <!-- Header Giữ Nguyên -->
+    <header class="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <a href="#" class="flex items-center gap-2">
+                    <span class="text-2xl">📰</span>
+                    <h1 class="text-xl font-bold text-primary">Nhật Báo D3</h1>
+                </a>
+                <div class="flex items-center gap-3">
+                    <button id="themeToggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <i class="fa-solid fa-moon dark:hidden"></i>
+                        <i class="fa-solid fa-sun hidden dark:inline text-yellow-400"></i>
+                    </button>
+                    <button id="addPostBtn" class="bg-secondary text-white px-4 py-2 rounded-lg text-sm font-medium">
+                        <i class="fa-solid fa-plus mr-1"></i> Đăng bài
+                    </button>
+                </div>
             </div>
         </div>
     </header>
 
     <main class="flex-grow container mx-auto px-4 py-6">
-        <div class="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 p-3 mb-6 rounded-r-lg text-sm">
-            ⚠️ <strong>Bản tin giả định</strong> — dùng cho minh họa
+        <div class="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 p-4 mb-8 rounded-r-lg">
+            <p class="text-sm text-yellow-800 dark:text-yellow-200 font-medium">
+                ⚠️ Các bài đăng trên trang này là <strong>bản tin giả định</strong>, chỉ dùng cho mục đích minh họa
+            </p>
         </div>
 
-        <div id="danhSachBai"></div>
+        <section>
+            <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+                <i class="fa-solid fa-newspaper text-primary"></i> Bài viết đã đăng
+            </h2>
+            <div id="postsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </section>
     </main>
 
-    <footer class="bg-gray-900 text-white py-6 text-center text-sm mt-10">
-        <p>© 2026 Nhật Báo D3</p>
+    <footer class="bg-gray-900 text-white py-8 mt-12">
+        <div class="container mx-auto px-4 text-center">
+            <p class="font-bold text-lg mb-2">📰 Nhật Báo D3</p>
+            <p class="text-gray-400 text-sm">© 2026 Nhật Báo D3 — Bài viết được lưu tự động</p>
+        </div>
     </footer>
 
     <!-- Form Đăng Bài -->
-    <div id="formBai" class="fixed inset-0 z-50 hidden bg-black/60 flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-gray-800 rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-5">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold">✍️ Đăng bài mới</h3>
-                <button id="dongForm" class="text-gray-500 text-xl"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium mb-1">Tiêu đề *</label>
-                    <input type="text" id="tieuDe" class="w-full p-3 border dark:border-gray-600 rounded-lg dark:bg-gray-700" placeholder="Nhập tiêu đề">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium mb-1">Ảnh 1</label>
-                    <input type="file" id="anh1" accept="image/*" class="w-full">
-                    <div id="xemTruoc1" class="mt-2 hidden"><img class="max-h-40 rounded-lg"></div>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium mb-1">Ảnh 2</label>
-                    <input type="file" id="anh2" accept="image/*" class="w-full">
-                    <div id="xemTruoc2" class="mt-2 hidden"><img class="max-h-40 rounded-lg"></div>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium mb-1">Ảnh 3</label>
-                    <input type="file" id="anh3" accept="image/*" class="w-full">
-                    <div id="xemTruoc3" class="mt-2 hidden"><img class="max-h-40 rounded-lg"></div>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium mb-1">Tác giả</label>
-                    <input type="text" id="tacGia" value="Quản trị" class="w-full p-3 border dark:border-gray-600 rounded-lg dark:bg-gray-700">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium mb-1">Nội dung *</label>
-                    <textarea id="noiDung" rows="6" class="w-full p-3 border dark:border-gray-600 rounded-lg dark:bg-gray-700" placeholder="Viết nội dung..."></textarea>
-                </div>
-
-                <button id="nutDang" class="w-full bg-secondary text-white py-3 rounded-lg font-medium">
-                    <i class="fa-solid fa-paper-plane"></i> Đăng bài
+    <div id="postModal" class="fixed inset-0 z-50 hidden bg-black/60 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-white dark:bg-gray-800 p-5 border-b dark:border-gray-700 flex justify-between items-center">
+                <h3 class="text-xl font-bold">✍️ Đăng bài viết mới</h3>
+                <button id="closeModal" class="text-gray-500 hover:text-black dark:hover:text-white text-xl">
+                    <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
+            <form id="postForm" class="p-5 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Tiêu đề bài viết *</label>
+                    <input type="text" id="postTitle" required
+                        class="w-full p-3 border dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700"
+                        placeholder="Nhập tiêu đề...">
+                </div>
+
+                <!-- CHỌN ẢNH — ĐƠN GIẢN, CHẮC CHẮN HOẠT ĐỘNG -->
+                <div>
+                    <label class="block text-sm font-medium mb-2">Ảnh minh họa</label>
+                    
+                    <div class="space-y-3">
+                        <!-- Ảnh 1 -->
+                        <div>
+                            <input type="file" id="file1" accept="image/*" class="w-full">
+                            <div id="prev1" class="mt-2 hidden preview-img">
+                                <img class="w-full h-32 object-cover rounded-lg">
+                                <button type="button" class="del-btn" data-no="1"><i class="fa-solid fa-times"></i></button>
+                            </div>
+                        </div>
+                        
+                        <!-- Ảnh 2 -->
+                        <div>
+                            <input type="file" id="file2" accept="image/*" class="w-full">
+                            <div id="prev2" class="mt-2 hidden preview-img">
+                                <img class="w-full h-32 object-cover rounded-lg">
+                                <button type="button" class="del-btn" data-no="2"><i class="fa-solid fa-times"></i></button>
+                            </div>
+                        </div>
+                        
+                        <!-- Ảnh 3 -->
+                        <div>
+                            <input type="file" id="file3" accept="image/*" class="w-full">
+                            <div id="prev3" class="mt-2 hidden preview-img">
+                                <img class="w-full h-32 object-cover rounded-lg">
+                                <button type="button" class="del-btn" data-no="3"><i class="fa-solid fa-times"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">💡 Mỗi ô chọn 1 ảnh — có thể chọn 1, 2 hoặc 3 ảnh</p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-2">Tác giả</label>
+                    <input type="text" id="postAuthor" value="Quản trị"
+                        class="w-full p-3 border dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Nội dung bài viết *</label>
+                    <textarea id="postContent" rows="6" required
+                        class="w-full p-3 border dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700"
+                        placeholder="Viết nội dung bài viết..."></textarea>
+                </div>
+                <div class="flex gap-3 pt-3">
+                    <button type="button" id="cancelBtn" class="flex-1 py-3 border dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                        Hủy
+                    </button>
+                    <button type="submit" class="flex-1 bg-secondary text-white py-3 rounded-lg font-medium">
+                        <i class="fa-solid fa-paper-plane mr-1"></i> Đăng bài
+                    </button>
+                </div>
+            </form>
         </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-6 right-6 bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-5 py-3 rounded-lg shadow-2xl opacity-0 transition-opacity duration-300 pointer-events-none z-50">
+        Đăng bài thành công! ✅
     </div>
 
     <script>
         // Chế độ tối
-        if(localStorage.getItem('dark')==='1' || (!localStorage.getItem('dark') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        if(localStorage.getItem('theme')==='dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
         }
-        document.getElementById('darkBtn').onclick = () => {
+        document.getElementById('themeToggle').onclick = () => {
             document.documentElement.classList.toggle('dark');
-            localStorage.setItem('dark', document.documentElement.classList.contains('dark') ? '1' : '0');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark')?'dark':'light');
         };
 
-        // Lưu bài viết
-        let dsBai = JSON.parse(localStorage.getItem('nhatbaod3')) || [];
-        function luu() { localStorage.setItem('nhatbaod3', JSON.stringify(dsBai)); }
+        // Lưu bài — BAN ĐẦU TRỐNG
+        let posts = JSON.parse(localStorage.getItem('nhatbaod3_posts')) || [];
+        function savePosts() { localStorage.setItem('nhatbaod3_posts', JSON.stringify(posts)); }
 
-        // Xem trước ảnh ngay sau khi chọn
-        ['anh1','anh2','anh3'].forEach((id, stt) => {
-            document.getElementById(id).addEventListener('change', function(e) {
-                const file = e.target.files[0];
-                if(!file) return;
+        // Dữ liệu ảnh đã chọn
+        let anhDaChon = ['', '', ''];
+
+        // === XỬ LÝ CHỌN ẢNH — ĐƠN GIẢN, CHẮC CHẮN ===
+        function khoiTaoChonAnh(soThuTu) {
+            const input = document.getElementById('file'+soThuTu);
+            const khungXemTruoc = document.getElementById('prev'+soThuTu);
+            const anhTrongKhung = khungXemTruoc.querySelector('img');
+
+            input.addEventListener('change', function(e) {
+                const tep = e.target.files[0];
+                if(!tep) return;
+
                 const doc = new FileReader();
                 doc.onload = function(kq) {
-                    const anh = kq.target.result;
-                    window['anhDuLieu'+(stt+1)] = anh;
-                    const khung = document.getElementById('xemTruoc'+(stt+1));
-                    khung.querySelector('img').src = anh;
-                    khung.classList.remove('hidden');
+                    anhDaChon[soThuTu - 1] = kq.target.result;
+                    anhTrongKhung.src = kq.target.result;
+                    khungXemTruoc.classList.remove('hidden');
                 };
-                doc.readAsDataURL(file);
+                doc.readAsDataURL(tep);
             });
+        }
+
+        // Khởi tạo 3 ô chọn ảnh
+        khoiTaoChonAnh(1);
+        khoiTaoChonAnh(2);
+        khoiTaoChonAnh(3);
+
+        // Xóa ảnh đã chọn
+        document.addEventListener('click', function(e) {
+            if(e.target.closest('.del-btn')) {
+                const so = parseInt(e.target.closest('.del-btn').dataset.no);
+                anhDaChon[so - 1] = '';
+                document.getElementById('file'+so).value = '';
+                document.getElementById('prev'+so).classList.add('hidden');
+            }
         });
 
         // Mở/đóng form
-        const form = document.getElementById('formBai');
-        document.getElementById('addBtn').onclick = () => {
-            form.classList.remove('hidden');
+        const modal = document.getElementById('postModal');
+        document.getElementById('addPostBtn').onclick = () => {
+            modal.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
         };
-        function dong() {
-            form.classList.add('hidden');
+        function dongForm() {
+            modal.classList.add('hidden');
             document.body.style.overflow = '';
-            document.getElementById('tieuDe').value = '';
-            document.getElementById('noiDung').value = '';
-            document.getElementById('anh1').value = '';
-            document.getElementById('anh2').value = '';
-            document.getElementById('anh3').value = '';
-            ['xemTruoc1','xemTruoc2','xemTruoc3'].forEach(id=>{
-                document.getElementById(id).classList.add('hidden');
-                document.getElementById(id).querySelector('img').src = '';
-            });
-            window.anhDuLieu1 = window.anhDuLieu2 = window.anhDuLieu3 = '';
+            document.getElementById('postForm').reset();
+            anhDaChon = ['', '', ''];
+            [1,2,3].forEach(n => document.getElementById('prev'+n).classList.add('hidden'));
         }
-        document.getElementById('dongForm').onclick = dong;
-        form.onclick = e => e.target === form && dong;
+        document.getElementById('closeModal').onclick = dongForm;
+        document.getElementById('cancelBtn').onclick = dongForm;
+        modal.onclick = e => e.target === modal && dongForm;
 
         // Đăng bài
-        document.getElementById('nutDang').onclick = function() {
-            const tieuDe = document.getElementById('tieuDe').value.trim();
-            const noiDung = document.getElementById('noiDung').value.trim();
+        document.getElementById('postForm').onsubmit = function(e) {
+            e.preventDefault();
+            const tieuDe = document.getElementById('postTitle').value.trim();
+            const noiDung = document.getElementById('postContent').value.trim();
+            const tacGia = document.getElementById('postAuthor').value.trim() || 'Ẩn danh';
+
             if(!tieuDe) { alert('Nhập tiêu đề!'); return; }
             if(!noiDung) { alert('Nhập nội dung!'); return; }
 
-            const anhList = [];
-            if(window.anhDuLieu1) anhList.push(window.anhDuLieu1);
-            if(window.anhDuLieu2) anhList.push(window.anhDuLieu2);
-            if(window.anhDuLieu3) anhList.push(window.anhDuLieu3);
+            // Lấy danh sách ảnh có dữ liệu
+            const danhSachAnh = anhDaChon.filter(a => a);
 
-            dsBai.unshift({
+            const baiMoi = {
                 id: Date.now(),
-                tieuDe,
-                tacGia: document.getElementById('tacGia').value.trim() || 'Ẩn danh',
-                ngay: new Date().toLocaleDateString('vi-VN'),
-                anh: anhList,
-                noiDung
-            });
-            luu();
-            xoaDanhSach();
-            dong();
-            alert('✅ Đăng bài thành công!');
+                title: tieuDe,
+                author: tacGia,
+                date: new Date().toLocaleDateString('vi-VN'),
+                images: danhSachAnh,
+                content: noiDung
+            };
+
+            posts.unshift(baiMoi);
+            savePosts();
+            hienThiBai();
+            dongForm();
+
+            // Thông báo
+            const thongBao = document.getElementById('toast');
+            thongBao.classList.remove('opacity-0');
+            setTimeout(() => thongBao.classList.add('opacity-0'), 3000);
         };
 
-        // Hiển thị danh sách bài
-        function xoaDanhSach() {
-            const khung = document.getElementById('danhSachBai');
-            if(dsBai.length === 0) {
-                khung.innerHTML = `<p class="text-center text-gray-500 py-12">Chưa có bài viết nào.<br>Nhấn "Đăng bài" để viết bài đầu tiên!</p>`;
+        // === HIỂN THỊ BÀI VIẾT — KHUNG VUÔNG NHỎ → NHẤN MỞ LỚN ===
+        function hienThiBai() {
+            const khung = document.getElementById('postsContainer');
+            
+            if(posts.length === 0) {
+                khung.innerHTML = `
+                    <div class="col-span-full text-center py-16 text-gray-500 dark:text-gray-400">
+                        <i class="fa-solid fa-pen-to-square text-4xl mb-4 opacity-30"></i>
+                        <p class="text-lg">Chưa có bài viết nào</p>
+                        <p class="text-sm mt-1">Nhấn nút <strong>"Đăng bài"</strong> để viết bài đầu tiên!</p>
+                    </div>
+                `;
                 return;
             }
-            khung.innerHTML = dsBai.map(bai => `
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md mb-4 overflow-hidden card-hover">
-                    <div class="p-5">
+
+            // KHUNG VUÔNG NHỎ — chứa ảnh + tiêu đề
+            khung.innerHTML = posts.map(bai => `
+                <article class="article-card bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden card-hover" data-id="${bai.id}">
+                    <!-- Ảnh đại diện khung nhỏ -->
+                    <div class="h-48 overflow-hidden bg-gray-100 dark:bg-gray-700">
+                        ${bai.images.length > 0 
+                            ? `<img src="${bai.images[0]}" class="w-full h-full object-cover">`
+                            : `<div class="w-full h-full flex items-center justify-center text-4xl text-gray-300">📰</div>`
+                        }
+                    </div>
+                    
+                    <!-- Thông tin tóm tắt -->
+                    <div class="p-4">
                         <span class="bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300 px-2 py-1 rounded-full text-xs">Bản tin giả định</span>
-                        <h3 class="text-lg font-bold mt-2 mb-1 cursor-pointer">${bai.tieuDe}</h3>
-                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">${bai.tacGia} • ${bai.ngay}</p>
-                        
-                        <div class="article-full">
-                            ${bai.anh.length > 0 ? `
-                                <div class="grid ${bai.anh.length === 1 ? 'grid-cols-1' : 'grid-cols-2 md:grid-cols-3'} gap-2 mb-3">
-                                    ${bai.anh.map(a=>`<img src="${a}" class="w-full h-32 object-cover rounded-lg">`).join('')}
-                                </div>
-                            ` : ''}
-                            <p class="whitespace-pre-line leading-relaxed">${bai.noiDung}</p>
-                        </div>
-                        
-                        <button class="mt-3 text-primary hover:text-secondary xemBtn" data-id="${bai.id}">
-                            <span>Xem chi tiết</span> <i class="fa-solid fa-chevron-down text-xs"></i>
+                        <h3 class="font-bold mt-2 mb-1 line-clamp-2">${bai.title}</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">${bai.author} • ${bai.date}</p>
+                    </div>
+                    
+                    <!-- Nút mở chi tiết -->
+                    <div class="px-4 pb-4">
+                        <button class="w-full py-2 text-sm text-primary hover:text-secondary border dark:border-gray-700 rounded-lg xem-chi-tiet" data-id="${bai.id}" data-mo="false">
+                            <span>Xem chi tiết</span> <i class="fa-solid fa-chevron-down ml-1"></i>
                         </button>
                     </div>
-                </div>
+                    
+                    <!-- NỘI DUNG ĐẦY ĐỦ — ẨN ĐI -->
+                    <div class="article-full border-t dark:border-gray-700 px-4 pb-4" id="noidung-${bai.id}">
+                        ${bai.images.length > 1 ? `
+                            <div class="grid grid-cols-2 gap-2 mt-3 mb-4">
+                                ${bai.images.slice(1).map(a => `<img src="${a}" class="w-full h-32 object-cover rounded-lg">`).join('')}
+                            </div>
+                        ` : ''}
+                        <div class="whitespace-pre-line leading-relaxed text-gray-700 dark:text-gray-300 mt-2">
+                            ${bai.content}
+                        </div>
+                        <button class="w-full mt-4 py-2 text-sm border dark:border-gray-700 rounded-lg thu-gon" data-id="${bai.id}">
+                            <i class="fa-solid fa-chevron-up mr-1"></i> Thu gọn
+                        </button>
+                    </div>
+                </article>
             `).join('');
 
-            // Nút mở/thu gọn
-            document.querySelectorAll('.xemBtn').forEach(btn => {
-                btn.onclick = function() {
-                    const bai = this.closest('.mb-4');
-                    const noiDung = bai.querySelector('.article-full');
-                    if(noiDung.classList.contains('open')) {
-                        noiDung.classList.remove('open');
-                        this.innerHTML = '<span>Xem chi tiết</span> <i class="fa-solid fa-chevron-down text-xs"></i>';
-                    } else {
-                        noiDung.classList.add('open');
-                        this.innerHTML = '<span>Thu gọn</span> <i class="fa-solid fa-chevron-up text-xs"></i>';
+            // Gắn sự kiện mở/thu gọn
+            document.querySelectorAll('.xem-chi-tiet').forEach(nut => {
+                nut.onclick = function() {
+                    const id = this.dataset.id;
+                    const noidung = document.getElementById('noidung-' + id);
+                    const dangMo = this.dataset.mo === 'true';
+
+                    if(!dangMo) {
+                        noidung.classList.add('expanded');
+                        this.innerHTML = '<span>Đang xem</span> <i class="fa-solid fa-chevron-up ml-1"></i>';
+                        this.dataset.mo = 'true';
                     }
+                };
+            });
+
+            document.querySelectorAll('.thu-gon').forEach(nut => {
+                nut.onclick = function() {
+                    const id = this.dataset.id;
+                    const noidung = document.getElementById('noidung-' + id);
+                    const nutXem = document.querySelector(`.xem-chi-tiet[data-id="${id}"]`);
+                    
+                    noidung.classList.remove('expanded');
+                    nutXem.innerHTML = '<span>Xem chi tiết</span> <i class="fa-solid fa-chevron-down ml-1"></i>';
+                    nutXem.dataset.mo = 'false';
                 };
             });
         }
 
-        xoaDanhSach();
+        // Khởi tạo
+        hienThiBai();
     </script>
 </body>
 </html>
