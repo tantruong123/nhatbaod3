@@ -23,8 +23,8 @@
         .card-hover { transition: all 0.3s ease; }
         .card-hover:hover { transform: translateY(-4px); box-shadow: 0 10px 25px rgba(0,0,0,0.12); }
         .preview-item { position: relative; }
-        .remove-btn { position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.6); color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; }
-        .remove-btn:hover { background: rgba(0,0,0,0.8); }
+        .remove-img { position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.6); color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; }
+        .remove-img:hover { background: rgba(0,0,0,0.8); }
         .article-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; }
         .article-content.expanded { max-height: 5000px; }
         .fade-mask { position: absolute; bottom: 0; left: 0; right: 0; height: 60px; background: linear-gradient(transparent, rgb(249 250 251 / 0.95)); pointer-events: none; }
@@ -93,10 +93,12 @@
                         placeholder="Nhập tiêu đề...">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium mb-2">Ảnh minh họa (chọn nhiều ảnh được)</label>
-                    <input type="file" id="postImages" accept="image/*" multiple class="w-full text-sm">
-                    <p class="text-xs text-gray-500 mt-1">💡 Giữ Ctrl (máy) hoặc giữ ảnh (điện thoại) để chọn nhiều ảnh</p>
-                    <div id="previewContainer" class="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3"></div>
+                    <label class="block text-sm font-medium mb-2">Ảnh minh họa</label>
+                    <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center hover:border-primary transition-colors">
+                        <input type="file" id="postImages" accept="image/*" multiple class="w-full text-sm">
+                        <p class="text-xs text-gray-500 mt-2">💡 Nhấn chọn ảnh — có thể chọn nhiều ảnh cùng lúc</p>
+                    </div>
+                    <div id="previewContainer" class="grid grid-cols-2 md:grid-cols-3 gap-3 mt-4"></div>
                 </div>
                 <div>
                     <label class="block text-sm font-medium mb-2">Tác giả</label>
@@ -135,7 +137,7 @@
             localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
         });
 
-        // Lưu bài viết — BAN ĐẦU TRỐNG HOÀN TOÀN
+        // Lưu bài viết — BAN ĐẦU TRỐNG
         let posts = JSON.parse(localStorage.getItem('nhatbaod3_posts')) || [];
 
         function savePosts() {
@@ -214,24 +216,29 @@
             }
         }
 
-        // === Xử lý chọn nhiều ảnh ===
+        // === SỬA LỖI CHỌN ẢNH ===
         let selectedImages = [];
         const imageInput = document.getElementById('postImages');
         const previewBox = document.getElementById('previewContainer');
 
         imageInput.addEventListener('change', function(e) {
-            const files = Array.from(e.target.files);
-            if (files.length === 0) return;
+            const files = e.target.files;
+            if (!files || files.length === 0) return;
 
-            files.forEach(file => {
-                if (!file.type.startsWith('image/')) return;
+            // Đọc từng ảnh
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (!file.type.startsWith('image/')) continue;
+                
                 const reader = new FileReader();
                 reader.onload = function(ev) {
                     selectedImages.push(ev.target.result);
                     renderPreview();
                 };
                 reader.readAsDataURL(file);
-            });
+            }
+            
+            // Reset input để có thể chọn thêm ảnh liên tục
             this.value = '';
         });
 
@@ -239,17 +246,19 @@
             previewBox.innerHTML = selectedImages.map((src, idx) => `
                 <div class="preview-item">
                     <img src="${src}" class="w-full h-24 object-cover rounded-lg">
-                    <button type="button" class="remove-btn" data-idx="${idx}">
+                    <button type="button" class="remove-img" data-index="${idx}">
                         <i class="fa-solid fa-times"></i>
                     </button>
                 </div>
             `).join('');
         }
 
+        // Xóa ảnh đã chọn
         previewBox.addEventListener('click', function(e) {
-            const btn = e.target.closest('.remove-btn');
+            const btn = e.target.closest('.remove-img');
             if (!btn) return;
-            selectedImages.splice(parseInt(btn.dataset.idx), 1);
+            const idx = parseInt(btn.dataset.index);
+            selectedImages.splice(idx, 1);
             renderPreview();
         });
 
@@ -275,10 +284,10 @@
             e.preventDefault();
             const title = document.getElementById('postTitle').value.trim();
             const content = document.getElementById('postContent').value.trim();
-            if (!title || !content) {
-                alert('Vui lòng nhập tiêu đề và nội dung!');
-                return;
-            }
+            
+            if (!title) { alert('Vui lòng nhập tiêu đề!'); return; }
+            if (!content) { alert('Vui lòng nhập nội dung!'); return; }
+
             const newPost = {
                 id: Date.now(),
                 title: title,
@@ -288,12 +297,13 @@
                 content: content,
                 isMock: true
             };
+            
             posts.unshift(newPost);
             savePosts();
             renderPosts();
             closeModal();
             
-            // Thông báo
+            // Thông báo thành công
             const toast = document.getElementById('toast');
             toast.classList.remove('opacity-0');
             setTimeout(() => toast.classList.add('opacity-0'), 3000);
