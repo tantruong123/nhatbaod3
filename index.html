@@ -20,28 +20,15 @@
         }
     </script>
     <style>
-        /* Giữ hiệu ứng cũ */
         .card-hover { transition: all 0.3s ease; }
         .card-hover:hover { transform: translateY(-4px); box-shadow: 0 10px 25px rgba(0,0,0,0.12); }
-        
-        /* Khung bài thu gọn — vuông nhỏ */
-        .article-card { cursor: pointer; }
-        
-        /* Nội dung ẩn — mở ra khi nhấn */
         .article-full { max-height: 0; overflow: hidden; transition: max-height 0.5s ease-out; }
         .article-full.expanded { max-height: 9999px; }
-        
-        /* Ảnh xem trước trong form */
         .preview-img { position: relative; }
-        .preview-img button {
-            position: absolute; top: 4px; right: 4px;
-            background: rgba(0,0,0,0.6); color: white; border-radius: 50%;
-            width: 28px; height: 28px; border: none; cursor: pointer;
-        }
+        .del-btn { position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.6); color: white; border-radius: 50%; width: 28px; height: 28px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
-    <!-- Header Giữ Nguyên -->
     <header class="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-50">
         <div class="container mx-auto px-4 py-4">
             <div class="flex items-center justify-between">
@@ -93,47 +80,39 @@
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
-            <form id="postForm" class="p-5 space-y-4">
+            <div class="p-5 space-y-4">
                 <div>
                     <label class="block text-sm font-medium mb-2">Tiêu đề bài viết *</label>
-                    <input type="text" id="postTitle" required
+                    <input type="text" id="postTitle"
                         class="w-full p-3 border dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700"
                         placeholder="Nhập tiêu đề...">
                 </div>
 
-                <!-- CHỌN ẢNH — ĐƠN GIẢN, CHẮC CHẮN HOẠT ĐỘNG -->
                 <div>
                     <label class="block text-sm font-medium mb-2">Ảnh minh họa</label>
-                    
                     <div class="space-y-3">
-                        <!-- Ảnh 1 -->
                         <div>
                             <input type="file" id="file1" accept="image/*" class="w-full">
                             <div id="prev1" class="mt-2 hidden preview-img">
                                 <img class="w-full h-32 object-cover rounded-lg">
-                                <button type="button" class="del-btn" data-no="1"><i class="fa-solid fa-times"></i></button>
+                                <button class="del-btn" data-n="1"><i class="fa-solid fa-times"></i></button>
                             </div>
                         </div>
-                        
-                        <!-- Ảnh 2 -->
                         <div>
                             <input type="file" id="file2" accept="image/*" class="w-full">
                             <div id="prev2" class="mt-2 hidden preview-img">
                                 <img class="w-full h-32 object-cover rounded-lg">
-                                <button type="button" class="del-btn" data-no="2"><i class="fa-solid fa-times"></i></button>
+                                <button class="del-btn" data-n="2"><i class="fa-solid fa-times"></i></button>
                             </div>
                         </div>
-                        
-                        <!-- Ảnh 3 -->
                         <div>
                             <input type="file" id="file3" accept="image/*" class="w-full">
                             <div id="prev3" class="mt-2 hidden preview-img">
                                 <img class="w-full h-32 object-cover rounded-lg">
-                                <button type="button" class="del-btn" data-no="3"><i class="fa-solid fa-times"></i></button>
+                                <button class="del-btn" data-n="3"><i class="fa-solid fa-times"></i></button>
                             </div>
                         </div>
                     </div>
-                    <p class="text-xs text-gray-500 mt-2">💡 Mỗi ô chọn 1 ảnh — có thể chọn 1, 2 hoặc 3 ảnh</p>
                 </div>
 
                 <div>
@@ -143,19 +122,19 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium mb-2">Nội dung bài viết *</label>
-                    <textarea id="postContent" rows="6" required
+                    <textarea id="postContent" rows="6"
                         class="w-full p-3 border dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700"
                         placeholder="Viết nội dung bài viết..."></textarea>
                 </div>
                 <div class="flex gap-3 pt-3">
-                    <button type="button" id="cancelBtn" class="flex-1 py-3 border dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <button id="cancelBtn" class="flex-1 py-3 border dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
                         Hủy
                     </button>
-                    <button type="submit" class="flex-1 bg-secondary text-white py-3 rounded-lg font-medium">
+                    <button id="submitBtn" class="flex-1 bg-secondary text-white py-3 rounded-lg font-medium">
                         <i class="fa-solid fa-paper-plane mr-1"></i> Đăng bài
                     </button>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 
@@ -165,53 +144,48 @@
 
     <script>
         // Chế độ tối
-        if(localStorage.getItem('theme')==='dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-        }
+        if(localStorage.getItem('theme')==='dark') document.documentElement.classList.add('dark');
         document.getElementById('themeToggle').onclick = () => {
             document.documentElement.classList.toggle('dark');
             localStorage.setItem('theme', document.documentElement.classList.contains('dark')?'dark':'light');
         };
 
-        // Lưu bài — BAN ĐẦU TRỐNG
+        // Lưu bài viết
         let posts = JSON.parse(localStorage.getItem('nhatbaod3_posts')) || [];
         function savePosts() { localStorage.setItem('nhatbaod3_posts', JSON.stringify(posts)); }
 
-        // Dữ liệu ảnh đã chọn
-        let anhDaChon = ['', '', ''];
+        // Dữ liệu ảnh
+        let images = ['', '', ''];
 
-        // === XỬ LÝ CHỌN ẢNH — ĐƠN GIẢN, CHẮC CHẮN ===
-        function khoiTaoChonAnh(soThuTu) {
-            const input = document.getElementById('file'+soThuTu);
-            const khungXemTruoc = document.getElementById('prev'+soThuTu);
-            const anhTrongKhung = khungXemTruoc.querySelector('img');
+        // === CHỌN ẢNH ===
+        function setupInput(num) {
+            const input = document.getElementById('file'+num);
+            const preview = document.getElementById('prev'+num);
+            const img = preview.querySelector('img');
 
             input.addEventListener('change', function(e) {
-                const tep = e.target.files[0];
-                if(!tep) return;
-
-                const doc = new FileReader();
-                doc.onload = function(kq) {
-                    anhDaChon[soThuTu - 1] = kq.target.result;
-                    anhTrongKhung.src = kq.target.result;
-                    khungXemTruoc.classList.remove('hidden');
+                const file = e.target.files[0];
+                if(!file) return;
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    images[num-1] = ev.target.result;
+                    img.src = ev.target.result;
+                    preview.classList.remove('hidden');
                 };
-                doc.readAsDataURL(tep);
+                reader.readAsDataURL(file);
             });
         }
+        setupInput(1);
+        setupInput(2);
+        setupInput(3);
 
-        // Khởi tạo 3 ô chọn ảnh
-        khoiTaoChonAnh(1);
-        khoiTaoChonAnh(2);
-        khoiTaoChonAnh(3);
-
-        // Xóa ảnh đã chọn
+        // Xóa ảnh
         document.addEventListener('click', function(e) {
             if(e.target.closest('.del-btn')) {
-                const so = parseInt(e.target.closest('.del-btn').dataset.no);
-                anhDaChon[so - 1] = '';
-                document.getElementById('file'+so).value = '';
-                document.getElementById('prev'+so).classList.add('hidden');
+                const n = parseInt(e.target.closest('.del-btn').dataset.n);
+                images[n-1] = '';
+                document.getElementById('file'+n).value = '';
+                document.getElementById('prev'+n).classList.add('hidden');
             }
         });
 
@@ -221,56 +195,63 @@
             modal.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
         };
-        function dongForm() {
+        function closeModal() {
             modal.classList.add('hidden');
             document.body.style.overflow = '';
-            document.getElementById('postForm').reset();
-            anhDaChon = ['', '', ''];
-            [1,2,3].forEach(n => document.getElementById('prev'+n).classList.add('hidden'));
+            document.getElementById('postTitle').value = '';
+            document.getElementById('postContent').value = '';
+            document.getElementById('postAuthor').value = 'Quản trị';
+            images = ['', '', ''];
+            document.getElementById('file1').value = '';
+            document.getElementById('file2').value = '';
+            document.getElementById('file3').value = '';
+            document.getElementById('prev1').classList.add('hidden');
+            document.getElementById('prev2').classList.add('hidden');
+            document.getElementById('prev3').classList.add('hidden');
         }
-        document.getElementById('closeModal').onclick = dongForm;
-        document.getElementById('cancelBtn').onclick = dongForm;
-        modal.onclick = e => e.target === modal && dongForm;
+        document.getElementById('closeModal').onclick = closeModal;
+        document.getElementById('cancelBtn').onclick = closeModal;
+        modal.onclick = e => e.target === modal && closeModal;
 
-        // Đăng bài
-        document.getElementById('postForm').onsubmit = function(e) {
-            e.preventDefault();
-            const tieuDe = document.getElementById('postTitle').value.trim();
-            const noiDung = document.getElementById('postContent').value.trim();
-            const tacGia = document.getElementById('postAuthor').value.trim() || 'Ẩn danh';
+        // === ĐĂNG BÀI ===
+        document.getElementById('submitBtn').onclick = function() {
+            const title = document.getElementById('postTitle').value.trim();
+            const content = document.getElementById('postContent').value.trim();
+            const author = document.getElementById('postAuthor').value.trim() || 'Ẩn danh';
 
-            if(!tieuDe) { alert('Nhập tiêu đề!'); return; }
-            if(!noiDung) { alert('Nhập nội dung!'); return; }
+            if(!title) { alert('Vui lòng nhập tiêu đề!'); return; }
+            if(!content) { alert('Vui lòng nhập nội dung!'); return; }
 
-            // Lấy danh sách ảnh có dữ liệu
-            const danhSachAnh = anhDaChon.filter(a => a);
+            // Lọc ảnh đã chọn
+            const selectedImgs = images.filter(i => i);
 
-            const baiMoi = {
+            // Tạo bài mới
+            const newPost = {
                 id: Date.now(),
-                title: tieuDe,
-                author: tacGia,
+                title: title,
+                author: author,
                 date: new Date().toLocaleDateString('vi-VN'),
-                images: danhSachAnh,
-                content: noiDung
+                images: selectedImgs,
+                content: content
             };
 
-            posts.unshift(baiMoi);
+            posts.unshift(newPost);
             savePosts();
-            hienThiBai();
-            dongForm();
+            renderPosts();
+            closeModal();
 
             // Thông báo
-            const thongBao = document.getElementById('toast');
-            thongBao.classList.remove('opacity-0');
-            setTimeout(() => thongBao.classList.add('opacity-0'), 3000);
+            const toast = document.getElementById('toast');
+            toast.classList.remove('opacity-0');
+            setTimeout(() => toast.classList.add('opacity-0'), 3000);
         };
 
-        // === HIỂN THỊ BÀI VIẾT — KHUNG VUÔNG NHỎ → NHẤN MỞ LỚN ===
-        function hienThiBai() {
-            const khung = document.getElementById('postsContainer');
+        // === HIỂN THỊ BÀI — KHUNG VUÔNG NHỎ ===
+        function renderPosts() {
+            const container = document.getElementById('postsContainer');
             
             if(posts.length === 0) {
-                khung.innerHTML = `
+                container.innerHTML = `
                     <div class="col-span-full text-center py-16 text-gray-500 dark:text-gray-400">
                         <i class="fa-solid fa-pen-to-square text-4xl mb-4 opacity-30"></i>
                         <p class="text-lg">Chưa có bài viết nào</p>
@@ -280,78 +261,64 @@
                 return;
             }
 
-            // KHUNG VUÔNG NHỎ — chứa ảnh + tiêu đề
-            khung.innerHTML = posts.map(bai => `
-                <article class="article-card bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden card-hover" data-id="${bai.id}">
-                    <!-- Ảnh đại diện khung nhỏ -->
+            container.innerHTML = posts.map(post => `
+                <article class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden card-hover" data-id="${post.id}">
+                    <!-- Ảnh bìa khung nhỏ -->
                     <div class="h-48 overflow-hidden bg-gray-100 dark:bg-gray-700">
-                        ${bai.images.length > 0 
-                            ? `<img src="${bai.images[0]}" class="w-full h-full object-cover">`
+                        ${post.images.length > 0 
+                            ? `<img src="${post.images[0]}" class="w-full h-full object-cover">`
                             : `<div class="w-full h-full flex items-center justify-center text-4xl text-gray-300">📰</div>`
                         }
                     </div>
                     
-                    <!-- Thông tin tóm tắt -->
                     <div class="p-4">
                         <span class="bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300 px-2 py-1 rounded-full text-xs">Bản tin giả định</span>
-                        <h3 class="font-bold mt-2 mb-1 line-clamp-2">${bai.title}</h3>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">${bai.author} • ${bai.date}</p>
+                        <h3 class="font-bold mt-2 mb-1 line-clamp-2">${post.title}</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">${post.author} • ${post.date}</p>
                     </div>
                     
-                    <!-- Nút mở chi tiết -->
                     <div class="px-4 pb-4">
-                        <button class="w-full py-2 text-sm text-primary hover:text-secondary border dark:border-gray-700 rounded-lg xem-chi-tiet" data-id="${bai.id}" data-mo="false">
-                            <span>Xem chi tiết</span> <i class="fa-solid fa-chevron-down ml-1"></i>
+                        <button class="w-full py-2 text-sm text-primary border dark:border-gray-700 rounded-lg xem-btn" data-id="${post.id}">
+                            Xem chi tiết <i class="fa-solid fa-chevron-down ml-1"></i>
                         </button>
                     </div>
                     
-                    <!-- NỘI DUNG ĐẦY ĐỦ — ẨN ĐI -->
-                    <div class="article-full border-t dark:border-gray-700 px-4 pb-4" id="noidung-${bai.id}">
-                        ${bai.images.length > 1 ? `
+                    <!-- Nội dung đầy đủ ẩn -->
+                    <div class="article-full border-t dark:border-gray-700 px-4 pb-4" id="full-${post.id}">
+                        ${post.images.length > 1 ? `
                             <div class="grid grid-cols-2 gap-2 mt-3 mb-4">
-                                ${bai.images.slice(1).map(a => `<img src="${a}" class="w-full h-32 object-cover rounded-lg">`).join('')}
+                                ${post.images.slice(1).map(img => `<img src="${img}" class="w-full h-32 object-cover rounded-lg">`).join('')}
                             </div>
                         ` : ''}
                         <div class="whitespace-pre-line leading-relaxed text-gray-700 dark:text-gray-300 mt-2">
-                            ${bai.content}
+                            ${post.content}
                         </div>
-                        <button class="w-full mt-4 py-2 text-sm border dark:border-gray-700 rounded-lg thu-gon" data-id="${bai.id}">
+                        <button class="w-full mt-4 py-2 text-sm border dark:border-gray-700 rounded-lg thu-btn" data-id="${post.id}">
                             <i class="fa-solid fa-chevron-up mr-1"></i> Thu gọn
                         </button>
                     </div>
                 </article>
             `).join('');
 
-            // Gắn sự kiện mở/thu gọn
-            document.querySelectorAll('.xem-chi-tiet').forEach(nut => {
-                nut.onclick = function() {
+            // Mở/thu gọn
+            document.querySelectorAll('.xem-btn').forEach(btn => {
+                btn.onclick = function() {
                     const id = this.dataset.id;
-                    const noidung = document.getElementById('noidung-' + id);
-                    const dangMo = this.dataset.mo === 'true';
-
-                    if(!dangMo) {
-                        noidung.classList.add('expanded');
-                        this.innerHTML = '<span>Đang xem</span> <i class="fa-solid fa-chevron-up ml-1"></i>';
-                        this.dataset.mo = 'true';
-                    }
+                    document.getElementById('full-'+id).classList.add('expanded');
+                    this.style.display = 'none';
                 };
             });
-
-            document.querySelectorAll('.thu-gon').forEach(nut => {
-                nut.onclick = function() {
+            document.querySelectorAll('.thu-btn').forEach(btn => {
+                btn.onclick = function() {
                     const id = this.dataset.id;
-                    const noidung = document.getElementById('noidung-' + id);
-                    const nutXem = document.querySelector(`.xem-chi-tiet[data-id="${id}"]`);
-                    
-                    noidung.classList.remove('expanded');
-                    nutXem.innerHTML = '<span>Xem chi tiết</span> <i class="fa-solid fa-chevron-down ml-1"></i>';
-                    nutXem.dataset.mo = 'false';
+                    document.getElementById('full-'+id).classList.remove('expanded');
+                    document.querySelector(`.xem-btn[data-id="${id}"]`).style.display = 'block';
                 };
             });
         }
 
         // Khởi tạo
-        hienThiBai();
+        renderPosts();
     </script>
 </body>
 </html>
