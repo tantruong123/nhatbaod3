@@ -3,314 +3,226 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nhật Báo D3 - Tin tức mỗi ngày</title>
+    <title>Nhật Báo D3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <script>
         tailwind.config = {
             darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#165DFF',
-                        secondary: '#FF7D00',
-                    }
-                }
-            }
+            theme: { extend: { colors: { primary: '#165DFF', secondary: '#FF7D00' } } }
         }
     </script>
     <style>
-        .card-hover { transition: all 0.3s ease; }
-        .card-hover:hover { transform: translateY(-4px); box-shadow: 0 10px 25px rgba(0,0,0,0.12); }
-        .preview-item { position: relative; }
-        .remove-img { position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.6); color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; }
-        .remove-img:hover { background: rgba(0,0,0,0.8); }
-        .article-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; }
-        .article-content.expanded { max-height: 5000px; }
-        .fade-mask { position: absolute; bottom: 0; left: 0; right: 0; height: 60px; background: linear-gradient(transparent, rgb(249 250 251 / 0.95)); pointer-events: none; }
-        .dark .fade-mask { background: linear-gradient(transparent, rgb(17 24 39 / 0.95)); }
+        .card-hover { transition: all 0.3s; }
+        .card-hover:hover { transform: translateY(-3px); }
+        .article-full { max-height: 0; overflow: hidden; transition: max-height 0.5s; }
+        .article-full.open { max-height: 9999px; }
     </style>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
-    <!-- Header -->
-    <header class="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-50">
-        <div class="container mx-auto px-4 py-4">
-            <div class="flex items-center justify-between">
-                <a href="#" class="flex items-center gap-2">
-                    <span class="text-2xl">📰</span>
-                    <h1 class="text-xl font-bold text-primary">Nhật Báo D3</h1>
-                </a>
-                <div class="flex items-center gap-3">
-                    <button id="themeToggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
-                        <i class="fa-solid fa-moon dark:hidden"></i>
-                        <i class="fa-solid fa-sun hidden dark:inline text-yellow-400"></i>
-                    </button>
-                    <button id="addPostBtn" class="bg-secondary text-white px-4 py-2 rounded-lg text-sm font-medium">
-                        <i class="fa-solid fa-plus mr-1"></i> Đăng bài
-                    </button>
-                </div>
+    <header class="bg-white dark:bg-gray-800 shadow-md py-4 sticky top-0 z-50">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <h1 class="text-xl font-bold text-primary">📰 Nhật Báo D3</h1>
+            <div class="flex gap-3">
+                <button id="darkBtn" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <i class="fa-solid fa-moon dark:hidden"></i>
+                    <i class="fa-solid fa-sun hidden dark:inline text-yellow-400"></i>
+                </button>
+                <button id="addBtn" class="bg-secondary text-white px-4 py-2 rounded-lg text-sm">
+                    <i class="fa-solid fa-plus"></i> Đăng bài
+                </button>
             </div>
         </div>
     </header>
 
-    <!-- Main -->
     <main class="flex-grow container mx-auto px-4 py-6">
-        <div class="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 p-4 mb-8 rounded-r-lg">
-            <p class="text-sm text-yellow-800 dark:text-yellow-200 font-medium">
-                ⚠️ Các bài đăng trên trang này là <strong>bản tin giả định</strong>, chỉ dùng cho mục đích minh họa
-            </p>
+        <div class="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 p-3 mb-6 rounded-r-lg text-sm">
+            ⚠️ <strong>Bản tin giả định</strong> — dùng cho minh họa
         </div>
 
-        <section>
-            <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
-                <i class="fa-solid fa-newspaper text-primary"></i> Bài viết đã đăng
-            </h2>
-            <div id="postsContainer" class="space-y-6"></div>
-        </section>
+        <div id="danhSachBai"></div>
     </main>
 
-    <footer class="bg-gray-900 text-white py-8 mt-12">
-        <div class="container mx-auto px-4 text-center">
-            <p class="font-bold text-lg mb-2">📰 Nhật Báo D3</p>
-            <p class="text-gray-400 text-sm">© 2026 Nhật Báo D3 — Bài viết được lưu tự động</p>
-        </div>
+    <footer class="bg-gray-900 text-white py-6 text-center text-sm mt-10">
+        <p>© 2026 Nhật Báo D3</p>
     </footer>
 
-    <!-- Modal Đăng Bài -->
-    <div id="postModal" class="fixed inset-0 z-50 hidden bg-black/60 flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-gray-800 rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div class="sticky top-0 bg-white dark:bg-gray-800 p-5 border-b dark:border-gray-700 flex justify-between items-center">
-                <h3 class="text-xl font-bold">✍️ Đăng bài viết mới</h3>
-                <button id="closeModal" class="text-gray-500 hover:text-black dark:hover:text-white text-xl">
-                    <i class="fa-solid fa-xmark"></i>
+    <!-- Form Đăng Bài -->
+    <div id="formBai" class="fixed inset-0 z-50 hidden bg-black/60 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-5">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold">✍️ Đăng bài mới</h3>
+                <button id="dongForm" class="text-gray-500 text-xl"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Tiêu đề *</label>
+                    <input type="text" id="tieuDe" class="w-full p-3 border dark:border-gray-600 rounded-lg dark:bg-gray-700" placeholder="Nhập tiêu đề">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-1">Ảnh 1</label>
+                    <input type="file" id="anh1" accept="image/*" class="w-full">
+                    <div id="xemTruoc1" class="mt-2 hidden"><img class="max-h-40 rounded-lg"></div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-1">Ảnh 2</label>
+                    <input type="file" id="anh2" accept="image/*" class="w-full">
+                    <div id="xemTruoc2" class="mt-2 hidden"><img class="max-h-40 rounded-lg"></div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-1">Ảnh 3</label>
+                    <input type="file" id="anh3" accept="image/*" class="w-full">
+                    <div id="xemTruoc3" class="mt-2 hidden"><img class="max-h-40 rounded-lg"></div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-1">Tác giả</label>
+                    <input type="text" id="tacGia" value="Quản trị" class="w-full p-3 border dark:border-gray-600 rounded-lg dark:bg-gray-700">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-1">Nội dung *</label>
+                    <textarea id="noiDung" rows="6" class="w-full p-3 border dark:border-gray-600 rounded-lg dark:bg-gray-700" placeholder="Viết nội dung..."></textarea>
+                </div>
+
+                <button id="nutDang" class="w-full bg-secondary text-white py-3 rounded-lg font-medium">
+                    <i class="fa-solid fa-paper-plane"></i> Đăng bài
                 </button>
             </div>
-            <form id="postForm" class="p-5 space-y-4">
-                <div>
-                    <label class="block text-sm font-medium mb-2">Tiêu đề bài viết *</label>
-                    <input type="text" id="postTitle" required
-                        class="w-full p-3 border dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700"
-                        placeholder="Nhập tiêu đề...">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium mb-2">Ảnh minh họa</label>
-                    <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center hover:border-primary transition-colors">
-                        <input type="file" id="postImages" accept="image/*" multiple class="w-full text-sm">
-                        <p class="text-xs text-gray-500 mt-2">💡 Nhấn chọn ảnh — có thể chọn nhiều ảnh cùng lúc</p>
-                    </div>
-                    <div id="previewContainer" class="grid grid-cols-2 md:grid-cols-3 gap-3 mt-4"></div>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium mb-2">Tác giả</label>
-                    <input type="text" id="postAuthor" value="Quản trị"
-                        class="w-full p-3 border dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium mb-2">Nội dung bài viết *</label>
-                    <textarea id="postContent" rows="8" required
-                        class="w-full p-3 border dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700"
-                        placeholder="Viết nội dung bài viết..."></textarea>
-                </div>
-                <div class="flex gap-3 pt-3">
-                    <button type="button" id="cancelBtn" class="flex-1 py-3 border dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
-                        Hủy
-                    </button>
-                    <button type="submit" class="flex-1 bg-secondary text-white py-3 rounded-lg font-medium">
-                        <i class="fa-solid fa-paper-plane mr-1"></i> Đăng bài
-                    </button>
-                </div>
-            </form>
         </div>
-    </div>
-
-    <div id="toast" class="fixed bottom-6 right-6 bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-5 py-3 rounded-lg shadow-2xl opacity-0 transition-opacity duration-300 pointer-events-none z-50">
-        Đăng bài thành công! ✅
     </div>
 
     <script>
-        // Chế độ tối/sáng
-        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        // Chế độ tối
+        if(localStorage.getItem('dark')==='1' || (!localStorage.getItem('dark') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
         }
-        document.getElementById('themeToggle').addEventListener('click', () => {
+        document.getElementById('darkBtn').onclick = () => {
             document.documentElement.classList.toggle('dark');
-            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+            localStorage.setItem('dark', document.documentElement.classList.contains('dark') ? '1' : '0');
+        };
+
+        // Lưu bài viết
+        let dsBai = JSON.parse(localStorage.getItem('nhatbaod3')) || [];
+        function luu() { localStorage.setItem('nhatbaod3', JSON.stringify(dsBai)); }
+
+        // Xem trước ảnh ngay sau khi chọn
+        ['anh1','anh2','anh3'].forEach((id, stt) => {
+            document.getElementById(id).addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if(!file) return;
+                const doc = new FileReader();
+                doc.onload = function(kq) {
+                    const anh = kq.target.result;
+                    window['anhDuLieu'+(stt+1)] = anh;
+                    const khung = document.getElementById('xemTruoc'+(stt+1));
+                    khung.querySelector('img').src = anh;
+                    khung.classList.remove('hidden');
+                };
+                doc.readAsDataURL(file);
+            });
         });
 
-        // Lưu bài viết — BAN ĐẦU TRỐNG
-        let posts = JSON.parse(localStorage.getItem('nhatbaod3_posts')) || [];
-
-        function savePosts() {
-            localStorage.setItem('nhatbaod3_posts', JSON.stringify(posts));
+        // Mở/đóng form
+        const form = document.getElementById('formBai');
+        document.getElementById('addBtn').onclick = () => {
+            form.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        };
+        function dong() {
+            form.classList.add('hidden');
+            document.body.style.overflow = '';
+            document.getElementById('tieuDe').value = '';
+            document.getElementById('noiDung').value = '';
+            document.getElementById('anh1').value = '';
+            document.getElementById('anh2').value = '';
+            document.getElementById('anh3').value = '';
+            ['xemTruoc1','xemTruoc2','xemTruoc3'].forEach(id=>{
+                document.getElementById(id).classList.add('hidden');
+                document.getElementById(id).querySelector('img').src = '';
+            });
+            window.anhDuLieu1 = window.anhDuLieu2 = window.anhDuLieu3 = '';
         }
+        document.getElementById('dongForm').onclick = dong;
+        form.onclick = e => e.target === form && dong;
 
-        // Hiển thị bài viết — thu gọn/mở rộng
-        function renderPosts() {
-            const container = document.getElementById('postsContainer');
-            if (posts.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-16 text-gray-500 dark:text-gray-400">
-                        <i class="fa-solid fa-pen-to-square text-4xl mb-4 opacity-30"></i>
-                        <p class="text-lg">Chưa có bài viết nào</p>
-                        <p class="text-sm mt-1">Nhấn nút <strong>"Đăng bài"</strong> để viết bài đầu tiên!</p>
-                    </div>
-                `;
+        // Đăng bài
+        document.getElementById('nutDang').onclick = function() {
+            const tieuDe = document.getElementById('tieuDe').value.trim();
+            const noiDung = document.getElementById('noiDung').value.trim();
+            if(!tieuDe) { alert('Nhập tiêu đề!'); return; }
+            if(!noiDung) { alert('Nhập nội dung!'); return; }
+
+            const anhList = [];
+            if(window.anhDuLieu1) anhList.push(window.anhDuLieu1);
+            if(window.anhDuLieu2) anhList.push(window.anhDuLieu2);
+            if(window.anhDuLieu3) anhList.push(window.anhDuLieu3);
+
+            dsBai.unshift({
+                id: Date.now(),
+                tieuDe,
+                tacGia: document.getElementById('tacGia').value.trim() || 'Ẩn danh',
+                ngay: new Date().toLocaleDateString('vi-VN'),
+                anh: anhList,
+                noiDung
+            });
+            luu();
+            xoaDanhSach();
+            dong();
+            alert('✅ Đăng bài thành công!');
+        };
+
+        // Hiển thị danh sách bài
+        function xoaDanhSach() {
+            const khung = document.getElementById('danhSachBai');
+            if(dsBai.length === 0) {
+                khung.innerHTML = `<p class="text-center text-gray-500 py-12">Chưa có bài viết nào.<br>Nhấn "Đăng bài" để viết bài đầu tiên!</p>`;
                 return;
             }
-            container.innerHTML = posts.map(post => `
-                <article class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden card-hover" data-id="${post.id}">
-                    <div class="p-6">
-                        <span class="bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300 px-3 py-1 rounded-full text-xs font-medium mb-3 inline-block">Bản tin giả định</span>
-                        <h3 class="text-xl font-bold mb-2 cursor-pointer toggle-title">${post.title}</h3>
-                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">${post.author} • ${post.date}</p>
+            khung.innerHTML = dsBai.map(bai => `
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md mb-4 overflow-hidden card-hover">
+                    <div class="p-5">
+                        <span class="bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300 px-2 py-1 rounded-full text-xs">Bản tin giả định</span>
+                        <h3 class="text-lg font-bold mt-2 mb-1 cursor-pointer">${bai.tieuDe}</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">${bai.tacGia} • ${bai.ngay}</p>
                         
-                        <div class="relative">
-                            <div class="article-content" id="content-${post.id}">
-                                ${post.images && post.images.length > 0 ? `
-                                    <div class="grid ${post.images.length === 1 ? 'grid-cols-1' : 'grid-cols-2 md:grid-cols-3'} gap-3 mb-4">
-                                        ${post.images.map(img => `
-                                            <img src="${img}" class="w-full ${post.images.length === 1 ? 'max-h-[400px]' : 'h-32'} object-cover rounded-lg">
-                                        `).join('')}
-                                    </div>
-                                ` : ''}
-                                <div class="prose max-w-none text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">
-                                    ${post.content}
+                        <div class="article-full">
+                            ${bai.anh.length > 0 ? `
+                                <div class="grid ${bai.anh.length === 1 ? 'grid-cols-1' : 'grid-cols-2 md:grid-cols-3'} gap-2 mb-3">
+                                    ${bai.anh.map(a=>`<img src="${a}" class="w-full h-32 object-cover rounded-lg">`).join('')}
                                 </div>
-                            </div>
-                            <div class="fade-mask" id="mask-${post.id}"></div>
+                            ` : ''}
+                            <p class="whitespace-pre-line leading-relaxed">${bai.noiDung}</p>
                         </div>
                         
-                        <button class="w-full mt-4 py-2 text-primary hover:text-secondary transition-colors flex items-center justify-center gap-2 toggle-btn" data-id="${post.id}" data-expanded="false">
-                            <span>Xem chi tiết</span>
-                            <i class="fa-solid fa-chevron-down text-sm"></i>
+                        <button class="mt-3 text-primary hover:text-secondary xemBtn" data-id="${bai.id}">
+                            <span>Xem chi tiết</span> <i class="fa-solid fa-chevron-down text-xs"></i>
                         </button>
                     </div>
-                </article>
+                </div>
             `).join('');
 
-            // Gắn sự kiện mở/thu gọn
-            document.querySelectorAll('.toggle-btn, .toggle-title').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const id = this.dataset.id || this.closest('[data-id]').dataset.id;
-                    toggleArticle(id);
-                });
+            // Nút mở/thu gọn
+            document.querySelectorAll('.xemBtn').forEach(btn => {
+                btn.onclick = function() {
+                    const bai = this.closest('.mb-4');
+                    const noiDung = bai.querySelector('.article-full');
+                    if(noiDung.classList.contains('open')) {
+                        noiDung.classList.remove('open');
+                        this.innerHTML = '<span>Xem chi tiết</span> <i class="fa-solid fa-chevron-down text-xs"></i>';
+                    } else {
+                        noiDung.classList.add('open');
+                        this.innerHTML = '<span>Thu gọn</span> <i class="fa-solid fa-chevron-up text-xs"></i>';
+                    }
+                };
             });
         }
 
-        function toggleArticle(id) {
-            const content = document.getElementById(`content-${id}`);
-            const mask = document.getElementById(`mask-${id}`);
-            const btn = document.querySelector(`.toggle-btn[data-id="${id}"]`);
-            const isExpanded = btn.dataset.expanded === 'true';
-
-            if (!isExpanded) {
-                content.classList.add('expanded');
-                mask.style.display = 'none';
-                btn.innerHTML = '<span>Thu gọn</span> <i class="fa-solid fa-chevron-up text-sm"></i>';
-                btn.dataset.expanded = 'true';
-            } else {
-                content.classList.remove('expanded');
-                mask.style.display = 'block';
-                btn.innerHTML = '<span>Xem chi tiết</span> <i class="fa-solid fa-chevron-down text-sm"></i>';
-                btn.dataset.expanded = 'false';
-            }
-        }
-
-        // === SỬA LỖI CHỌN ẢNH ===
-        let selectedImages = [];
-        const imageInput = document.getElementById('postImages');
-        const previewBox = document.getElementById('previewContainer');
-
-        imageInput.addEventListener('change', function(e) {
-            const files = e.target.files;
-            if (!files || files.length === 0) return;
-
-            // Đọc từng ảnh
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                if (!file.type.startsWith('image/')) continue;
-                
-                const reader = new FileReader();
-                reader.onload = function(ev) {
-                    selectedImages.push(ev.target.result);
-                    renderPreview();
-                };
-                reader.readAsDataURL(file);
-            }
-            
-            // Reset input để có thể chọn thêm ảnh liên tục
-            this.value = '';
-        });
-
-        function renderPreview() {
-            previewBox.innerHTML = selectedImages.map((src, idx) => `
-                <div class="preview-item">
-                    <img src="${src}" class="w-full h-24 object-cover rounded-lg">
-                    <button type="button" class="remove-img" data-index="${idx}">
-                        <i class="fa-solid fa-times"></i>
-                    </button>
-                </div>
-            `).join('');
-        }
-
-        // Xóa ảnh đã chọn
-        previewBox.addEventListener('click', function(e) {
-            const btn = e.target.closest('.remove-img');
-            if (!btn) return;
-            const idx = parseInt(btn.dataset.index);
-            selectedImages.splice(idx, 1);
-            renderPreview();
-        });
-
-        // Mở/đóng form đăng bài
-        const modal = document.getElementById('postModal');
-        document.getElementById('addPostBtn').onclick = () => {
-            modal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        };
-        function closeModal() {
-            modal.classList.add('hidden');
-            document.body.style.overflow = '';
-            document.getElementById('postForm').reset();
-            selectedImages = [];
-            previewBox.innerHTML = '';
-        }
-        document.getElementById('closeModal').onclick = closeModal;
-        document.getElementById('cancelBtn').onclick = closeModal;
-        modal.onclick = e => e.target === modal && closeModal();
-
-        // Đăng bài
-        document.getElementById('postForm').onsubmit = function(e) {
-            e.preventDefault();
-            const title = document.getElementById('postTitle').value.trim();
-            const content = document.getElementById('postContent').value.trim();
-            
-            if (!title) { alert('Vui lòng nhập tiêu đề!'); return; }
-            if (!content) { alert('Vui lòng nhập nội dung!'); return; }
-
-            const newPost = {
-                id: Date.now(),
-                title: title,
-                author: document.getElementById('postAuthor').value.trim() || "Ẩn danh",
-                date: new Date().toLocaleDateString('vi-VN'),
-                images: [...selectedImages],
-                content: content,
-                isMock: true
-            };
-            
-            posts.unshift(newPost);
-            savePosts();
-            renderPosts();
-            closeModal();
-            
-            // Thông báo thành công
-            const toast = document.getElementById('toast');
-            toast.classList.remove('opacity-0');
-            setTimeout(() => toast.classList.add('opacity-0'), 3000);
-        };
-
-        // Khởi tạo
-        renderPosts();
+        xoaDanhSach();
     </script>
 </body>
 </html>
